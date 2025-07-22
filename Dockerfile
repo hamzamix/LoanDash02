@@ -1,13 +1,23 @@
-FROM node:20 AS builder
-WORKDIR /app
-COPY frontend ./frontend
-RUN cd frontend && npm install && npm run build
+# Stage 1: Build frontend
+FROM node:20-alpine AS frontend-build
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
 
-FROM node:20
+# Stage 2: Setup backend files
+FROM node:20-alpine AS backend-build
 WORKDIR /app
-COPY --from=builder /app/frontend/dist ./dist
 COPY server.js .
 COPY db.json .
-RUN npm install express cors
+
+# Stage 3: Final image
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=frontend-build /app/frontend/dist ./dist
+COPY --from=backend-build /app .
+
+RUN npm install express
 EXPOSE 8050
 CMD ["node", "server.js"]
