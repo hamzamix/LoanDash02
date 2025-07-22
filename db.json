@@ -1,1 +1,6 @@
-
+{
+  "loans": [
+    { "id": 1, "borrower": "Alice", "amount": 1000 },
+    { "id": 2, "borrower": "Bob", "amount": 2000 }
+  ]
+}
