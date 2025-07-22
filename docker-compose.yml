@@ -1,10 +1,12 @@
+
 services:
   loandash:
     build: .
+    container_name: loandash
     ports:
-      - "8050:8050"
+      - "8050:3000"
     volumes:
-      - loandash-data:/app/db.json
+      - loandash-data:/app/data
     restart: unless-stopped
 
 volumes:
