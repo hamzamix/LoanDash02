@@ -1,16 +1,14 @@
-# 1. Build React frontend
+# Step 1: Build frontend
 FROM node:20 AS builder
-WORKDIR /app
+WORKDIR /frontend
 COPY frontend ./frontend
-WORKDIR /app/frontend
-RUN npm install && npm run build
+RUN cd frontend && npm install && npm run build
 
-# 2. Serve with Express
+# Step 2: Serve with Express
 FROM node:20-slim
 WORKDIR /app
-COPY backend ./
-COPY --from=builder /app/frontend/dist ./dist
-RUN npm install --production
-
+COPY server ./
+COPY --from=builder /frontend/dist ./dist
+RUN npm install --omit=dev
 EXPOSE 8050
 CMD ["node", "server.js"]
