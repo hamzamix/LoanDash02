@@ -1,0 +1,11 @@
+services:
+  loandash:
+    build: .
+    ports:
+      - "8050:8050"
+    volumes:
+      - loandash-data:/app/db.json
+    restart: unless-stopped
+
+volumes:
+  loandash-data:
