@@ -8,6 +8,19 @@ import ArchiveComponent from './components/Archive';
 import Modal from './components/common/Modal';
 import { PlusIcon, MagnifyingGlassIcon, ArrowDownTrayIcon } from './components/common/Icons';
 
+// Polyfill for crypto.randomUUID for older environments
+const generateUUID = () => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  } else {
+    // Fallback for environments without crypto.randomUUID
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+};
+
 type ActiveTab = 'dashboard' | 'debts' | 'loans' | 'archive';
 type AutoArchiveSetting = 'never' | 'immediate' | '1day' | '7days';
 
@@ -283,7 +296,7 @@ const App: React.FC = () => {
   
     const updatedDebt: Debt = {
       ...debts.find(d => d.id === debtId)!,
-      payments: [...debtWithInterest.payments, { ...payment, id: crypto.randomUUID() }]
+ payments: [...debtWithInterest.payments, { ...payment, id: generateUUID() }]
     };
     
     const totalPaid = updatedDebt.payments.reduce((sum, p) => sum + p.amount, 0);
@@ -293,10 +306,10 @@ const App: React.FC = () => {
     if (updatedDebt.isRecurring && isPaidOff) {
       const newDueDate = new Date(updatedDebt.dueDate);
       newDueDate.setMonth(newDueDate.getMonth() + 1);
-      const nextDebt: Debt = { ...updatedDebt, payments: [], id: crypto.randomUUID(), dueDate: newDueDate.toISOString(), startDate: new Date().toISOString() };
+      const nextDebt: Debt = { ...updatedDebt, payments: [], id: generateUUID(), dueDate: newDueDate.toISOString(), startDate: new Date().toISOString() };
       
       const nextDebts = debts.map(d => d.id === debtId ? nextDebt : d);
-      const nextArchived = [...archivedDebts, { ...updatedDebt, status: 'completed' as const }];
+      const nextArchived = [...archivedDebts, { ...updatedDebt, status: 'completed' as const, id: generateUUID() }];
       handleStateChange({ ...appState, 'loandash-debts': nextDebts, 'loandash-archived-debts': nextArchived });
     } else {
       const nextDebts = debts.map(d => d.id === debtId ? updatedDebt : d);
@@ -305,7 +318,7 @@ const App: React.FC = () => {
   };
 
   const handleAddRepayment = (loanId: string, repayment: Omit<Payment, 'id'>) => {
-    const nextLoans = loans.map(l => l.id === loanId ? { ...l, repayments: [...l.repayments, { ...repayment, id: crypto.randomUUID() }] } : l);
+    const nextLoans = loans.map(l => l.id === loanId ? { ...l, repayments: [...l.repayments, { ...repayment, id: generateUUID() }] } : l);
     handleStateChange({ ...appState, 'loandash-loans': nextLoans });
   };
   
@@ -352,7 +365,7 @@ const App: React.FC = () => {
       const nextDebts = debts.map(d => d.id === editingDebtId ? { ...d, ...debtData } : d);
       nextState = { ...appState, 'loandash-debts': nextDebts };
     } else {
-      const newDebt: Debt = { ...debtData, id: crypto.randomUUID(), payments: [], status: 'active' };
+      const newDebt: Debt = { ...debtData, id: generateUUID(), payments: [], status: 'active' };
       nextState = { ...appState, 'loandash-debts': [...debts, newDebt] };
     }
     
@@ -394,7 +407,7 @@ const App: React.FC = () => {
       const nextLoans = loans.map(l => l.id === editingLoanId ? { ...l, ...loanData } : l);
       nextState = { ...appState, 'loandash-loans': nextLoans };
     } else {
-      const newLoan: Loan = { ...loanData, id: crypto.randomUUID(), repayments: [], status: 'active' };
+      const newLoan: Loan = { ...loanData, id: generateUUID(), repayments: [], status: 'active' };
       nextState = { ...appState, 'loandash-loans': [...loans, newLoan] };
     }
     
