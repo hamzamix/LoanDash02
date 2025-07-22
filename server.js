@@ -1,23 +1,18 @@
-import express from 'express';
-import path from 'path';
-import fs from 'fs';
-
+const express = require('express');
+const fs = require('fs');
+const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 8050;
 
-const dataFile = path.join(process.cwd(), 'db.json');
-
+app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(process.cwd(), 'dist')));
+app.use(express.static('dist'));
 
 app.get('/api/data', (req, res) => {
-  const content = fs.existsSync(dataFile) ? fs.readFileSync(dataFile, 'utf-8') : '[]';
-  res.json(JSON.parse(content));
+  const data = fs.readFileSync('./db.json', 'utf-8');
+  res.json(JSON.parse(data));
 });
 
-app.post('/api/data', (req, res) => {
-  fs.writeFileSync(dataFile, JSON.stringify(req.body, null, 2));
-  res.json({ status: 'ok' });
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
 });
-
-app.listen(PORT, '0.0.0.0', () => console.log(`Server listening on port ${PORT}`));
