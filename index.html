@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LoanDash - Personal Loan Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'slate': {
+                950: '#090e1a',
+                900: '#101827',
+                800: '#1b2537',
+                700: '#2a3a53',
+                600: '#485a73',
+                500: '#697a93',
+              },
+              'sky': {
+                500: '#0ea5e9',
+                600: '#0284c7',
+              }
+            }
+          }
+        }
+      }
+    </script>
+  <!-- Add ES Module Shims for robust importmap support -->
+  <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "recharts": "https://esm.sh/recharts@2.12.7",
+    "react-is": "https://esm.sh/react-is@18.2.0",
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+    "react/": "https://esm.sh/react@18.2.0/"
+  }
+}
+</script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-slate-900 text-slate-300 font-sans">
+    <div id="root"></div>
+    <!--
+      The script tag is now configured to use Babel with the React and TypeScript presets.
+      This allows the browser to transpile and run the .tsx files directly without a build step.
+    -->
+    <script type="text/babel" data-presets="react,typescript" data-type="module" src="./index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
