@@ -402,6 +402,139 @@ const App: React.FC = () => {
     if (success) resetAndCloseForms();
   };
   
+  // --- CSV Export Function ---
+  const exportToCSV = () => {
+    try {
+      // Prepare data for export
+      const exportData: any[] = [];
+      
+      // Add active debts
+      debts.forEach(debt => {
+        const totalPaid = debt.payments.reduce((sum, p) => sum + p.amount, 0);
+        const remaining = debt.totalAmount - totalPaid;
+        
+        exportData.push({
+          Type: 'Debt',
+          Status: 'Active',
+          Name: debt.name,
+          Category: debt.type,
+          TotalAmount: debt.totalAmount,
+          AmountPaid: totalPaid,
+          AmountRemaining: remaining,
+          StartDate: new Date(debt.startDate).toLocaleDateString(),
+          DueDate: new Date(debt.dueDate).toLocaleDateString(),
+          Description: debt.description || '',
+          InterestRate: debt.interestRate || '',
+          IsRecurring: debt.isRecurring ? 'Yes' : 'No',
+          PaymentCount: debt.payments.length
+        });
+      });
+      
+      // Add active loans
+      loans.forEach(loan => {
+        const totalRepaid = loan.repayments.reduce((sum, p) => sum + p.amount, 0);
+        const remaining = loan.totalAmount - totalRepaid;
+        
+        exportData.push({
+          Type: 'Loan',
+          Status: 'Active',
+          Name: loan.name,
+          Category: 'Loan',
+          TotalAmount: loan.totalAmount,
+          AmountPaid: totalRepaid,
+          AmountRemaining: remaining,
+          StartDate: new Date(loan.startDate).toLocaleDateString(),
+          DueDate: new Date(loan.dueDate).toLocaleDateString(),
+          Description: loan.description || '',
+          InterestRate: '',
+          IsRecurring: 'No',
+          PaymentCount: loan.repayments.length
+        });
+      });
+      
+      // Add archived debts
+      archivedDebts.forEach(debt => {
+        const totalPaid = debt.payments.reduce((sum, p) => sum + p.amount, 0);
+        const remaining = debt.totalAmount - totalPaid;
+        
+        exportData.push({
+          Type: 'Debt',
+          Status: `Archived (${debt.status})`,
+          Name: debt.name,
+          Category: debt.type,
+          TotalAmount: debt.totalAmount,
+          AmountPaid: totalPaid,
+          AmountRemaining: remaining,
+          StartDate: new Date(debt.startDate).toLocaleDateString(),
+          DueDate: new Date(debt.dueDate).toLocaleDateString(),
+          Description: debt.description || '',
+          InterestRate: debt.interestRate || '',
+          IsRecurring: debt.isRecurring ? 'Yes' : 'No',
+          PaymentCount: debt.payments.length
+        });
+      });
+      
+      // Add archived loans
+      archivedLoans.forEach(loan => {
+        const totalRepaid = loan.repayments.reduce((sum, p) => sum + p.amount, 0);
+        const remaining = loan.totalAmount - totalRepaid;
+        
+        exportData.push({
+          Type: 'Loan',
+          Status: `Archived (${loan.status})`,
+          Name: loan.name,
+          Category: 'Loan',
+          TotalAmount: loan.totalAmount,
+          AmountPaid: totalRepaid,
+          AmountRemaining: remaining,
+          StartDate: new Date(loan.startDate).toLocaleDateString(),
+          DueDate: new Date(loan.dueDate).toLocaleDateString(),
+          Description: loan.description || '',
+          InterestRate: '',
+          IsRecurring: 'No',
+          PaymentCount: loan.repayments.length
+        });
+      });
+      
+      if (exportData.length === 0) {
+        alert('No data to export. Add some debts or loans first.');
+        return;
+      }
+      
+      // Convert to CSV
+      const headers = Object.keys(exportData[0]);
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map(row => 
+          headers.map(header => {
+            const value = row[header];
+            // Escape commas and quotes in CSV values
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          }).join(',')
+        )
+      ].join('\n');
+      
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `loandash-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      alert(`Successfully exported ${exportData.length} records to CSV!`);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export data. Please try again.');
+    }
+  };
+
   // --- Rendering ---
   if (error) {
     return (
@@ -600,7 +733,7 @@ const App: React.FC = () => {
             <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
                 <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">Data Management</h3>
                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Download all your data as a CSV file.</p>
-                 <button onClick={() => {}} className="flex items-center gap-2 w-full justify-center px-4 py-2 text-sm font-medium rounded-md text-slate-700 dark:text-slate-200 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                 <button onClick={exportToCSV} className="flex items-center gap-2 w-full justify-center px-4 py-2 text-sm font-medium rounded-md text-slate-700 dark:text-slate-200 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
                     <ArrowDownTrayIcon className="w-5 h-5" />
                     Export All Data to CSV
                  </button>
