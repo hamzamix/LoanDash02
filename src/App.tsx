@@ -570,14 +570,8 @@ const App: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <Dashboard debts={debtsWithInterest} loans={loans} archivedDebts={archivedDebts} archivedLoans={archivedLoans} />;
-      case 'debts': return <DebtsComponent debts={filteredDebts} onAddPayment={handleAddPayment} onArchiveDebt={handleArchiveDebt} onEdit={(debtId) => {
-        const debt = debts.find(d => d.id === debtId);
-        openDebtModal(debt || null);
-      }} />;
-      case 'loans': return <LoansComponent loans={filteredLoans} onAddRepayment={handleAddRepayment} onArchiveLoan={handleArchiveLoan} onEdit={(loanId) => {
-        const loan = loans.find(l => l.id === loanId);
-        openLoanModal(loan || null);
-      }} />;
+      case 'debts': return <DebtsComponent debts={filteredDebts} onAddPayment={handleAddPayment} onArchiveDebt={handleArchiveDebt} onEdit={(debt) => openDebtModal(debt)} />;
+      case 'loans': return <LoansComponent loans={filteredLoans} onAddRepayment={handleAddRepayment} onArchiveLoan={handleArchiveLoan} onEdit={(loan) => openLoanModal(loan)} />;
       case 'archive': return <ArchiveComponent archivedDebts={filteredArchivedDebts} archivedLoans={filteredArchivedLoans} onDeleteDebt={handleDeleteArchivedDebt} onDeleteLoan={handleDeleteArchivedLoan} />
       default: return <Dashboard debts={debtsWithInterest} loans={loans} archivedDebts={archivedDebts} archivedLoans={archivedLoans} />;
     }
