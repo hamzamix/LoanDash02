@@ -13,7 +13,7 @@ services:
     volumes:
       # Mount a persistent, named volume to the /data directory inside the container.
       # This is where db.json will be stored safely.
-      - loandash-data:/data
+      - loandash02-data:/data
     restart: unless-stopped
 
 # Define the named volume that Docker will manage for data persistence.
