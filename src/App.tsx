@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Debt, DebtType, Loan, Payment } from './types';
+import { Debt, DebtType, Loan, Payment, RecurrenceType, RecurrenceSettings, NotificationSettings } from './types';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import DebtsComponent from './components/Debts';
@@ -7,6 +7,8 @@ import LoansComponent from './components/Loans';
 import ArchiveComponent from './components/Archive';
 import Modal from './components/common/Modal';
 import { PlusIcon, MagnifyingGlassIcon, ArrowDownTrayIcon } from './components/common/Icons';
+import { formatCurrency, SUPPORTED_CURRENCIES } from './utils/currency';
+import { calculateNextDueDate, getRecurrenceDescription } from './utils/recurrence';
 
 type ActiveTab = 'dashboard' | 'debts' | 'loans' | 'archive';
 type AutoArchiveSetting = 'never' | 'immediate' | '1day' | '7days';
@@ -18,6 +20,8 @@ type AppState = {
   'loandash-archived-debts': Debt[];
   'loandash-archived-loans': Loan[];
   'loandash-auto-archive': AutoArchiveSetting;
+  'loandash-default-currency': string;
+  'loandash-notification-settings': NotificationSettings;
 };
 
 const defaultState: AppState = {
@@ -27,6 +31,13 @@ const defaultState: AppState = {
   'loandash-archived-debts': [],
   'loandash-archived-loans': [],
   'loandash-auto-archive': 'never',
+  'loandash-default-currency': 'MAD',
+  'loandash-notification-settings': {
+    enabled: true,
+    defaultReminderDays: 3,
+    browserNotifications: true,
+    emailNotifications: false
+  }
 };
 
 const getFutureDateString = (months: number) => {
@@ -60,11 +71,21 @@ const App: React.FC = () => {
   const [newDebtDescription, setNewDebtDescription] = useState('');
   const [newDebtInterestRate, setNewDebtInterestRate] = useState('');
   const [newDebtIsRecurring, setNewDebtIsRecurring] = useState(false);
+  const [newDebtRecurrenceType, setNewDebtRecurrenceType] = useState<RecurrenceType>(RecurrenceType.Monthly);
+  const [newDebtRecurrenceEndDate, setNewDebtRecurrenceEndDate] = useState('');
+  const [newDebtRecurrenceMaxOccurrences, setNewDebtRecurrenceMaxOccurrences] = useState('');
+  const [newDebtCurrency, setNewDebtCurrency] = useState('');
+  const [newDebtReminderEnabled, setNewDebtReminderEnabled] = useState(true);
+  const [newDebtReminderDays, setNewDebtReminderDays] = useState('3');
+  
   const [newLoanName, setNewLoanName] = useState('');
   const [newLoanAmount, setNewLoanAmount] = useState('');
   const [newLoanStartDate, setNewLoanStartDate] = useState('');
   const [newLoanDueDate, setNewLoanDueDate] = useState('');
   const [newLoanDescription, setNewLoanDescription] = useState('');
+  const [newLoanCurrency, setNewLoanCurrency] = useState('');
+  const [newLoanReminderEnabled, setNewLoanReminderEnabled] = useState(true);
+  const [newLoanReminderDays, setNewLoanReminderDays] = useState('3');
 
   const {
     'loandash-dark-mode': isDarkMode,
@@ -73,6 +94,8 @@ const App: React.FC = () => {
     'loandash-archived-debts': archivedDebts,
     'loandash-archived-loans': archivedLoans,
     'loandash-auto-archive': autoArchiveSetting,
+    'loandash-default-currency': defaultCurrency,
+    'loandash-notification-settings': notificationSettings,
   } = appState;
 
   // --- Data Saving ---
@@ -113,6 +136,13 @@ const App: React.FC = () => {
             'loandash-archived-debts': data['loandash-archived-debts'] ?? [],
             'loandash-archived-loans': data['loandash-archived-loans'] ?? [],
             'loandash-auto-archive': data['loandash-auto-archive'] ?? 'never',
+            'loandash-default-currency': data['loandash-default-currency'] ?? 'MAD',
+            'loandash-notification-settings': data['loandash-notification-settings'] ?? {
+              enabled: true,
+              defaultReminderDays: 3,
+              browserNotifications: true,
+              emailNotifications: false
+            },
         });
       })
       .catch(async err => {
